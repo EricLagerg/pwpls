@@ -33,13 +33,8 @@ creation algorithm, and more.
   -s, --special		number of special characters (default = 0)
   -t, --type 		type of algorithm to use (default = OS' PRNG)
             		  other types include (case independent):
-            		  * SHA256
-            		  * SHA512
             		  * xorshift [xs] (4096)
-            		  * RSA
             		  * mersenne_twister [mt]
-            		  * AES (256)
-            		  * elliptic_curve [ec] (P521)
   -u, --uppercase	number of uppercase characters (default = random)
 
 Report pwpls bugs to ericscottlagergren@gmail.com
@@ -68,16 +63,10 @@ type AlgFn func() string
 
 var knownAlgorithms = map[string]AlgFn{
 	"random":           randAlg,
-	"sha256":           randAlg,
-	"sha512":           randAlg,
 	"xorshift":         xorshiftAlg,
 	"xs":               xorshiftAlg,
-	"rsa":              randAlg,
 	"mersenne_twister": mersenneAlg,
 	"mt":               mersenneAlg,
-	"aes":              randAlg,
-	"elliptic_curve":   randAlg,
-	"ec":               randAlg,
 }
 
 func exit(format string, v ...interface{}) {
