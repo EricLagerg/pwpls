@@ -25,11 +25,12 @@ creation algorithm, and more.
 
   -c, --common		reject "common" passwords (default = true)
   -d, --digits		number of digits (default = random)
-  -e, --exclude		exclude special characters (default = "")
+  -e, --exclude		exclude specific special characters (default = "")
+  -i, --include-special	include special characters (random)
   -l, --length		required password length (default = 8)
   -w, --lower		number of lowercase characters (default = random)
   -n, --number		number of passwords to print
-  -s, --special		number of special characters (default = random)
+  -s, --special		number of special characters (default = 0)
   -t, --type 		type of algorithm to use (default = OS' PRNG)
             		  other types include (case independent):
             		  * SHA256
@@ -47,15 +48,16 @@ pwpls home page: <https://github.com/EricLagerg/pwpls>
 )
 
 var (
-	alg     = flag.StringP("alg", "a", "random", "")
-	common  = flag.BoolP("common", "c", true, "")
-	digits  = flag.IntP("digits", "d", 0, "")
-	exclude = flag.StringP("exclude", "e", "", "")
-	length  = flag.IntP("length", "l", 8, "")
-	lower   = flag.IntP("lower", "w", 0, "")
-	number  = flag.IntP("number", "n", 1, "")
-	special = flag.IntP("special", "s", 0, "")
-	upper   = flag.IntP("uppercase", "u", -1, "")
+	alg            = flag.StringP("alg", "a", "random", "")
+	common         = flag.BoolP("common", "c", true, "")
+	digits         = flag.IntP("digits", "d", 0, "")
+	exclude        = flag.StringP("exclude", "e", "", "")
+	includeSpecial = flag.BoolP("include-special", "i", false, "")
+	length         = flag.IntP("length", "l", 8, "")
+	lower          = flag.IntP("lower", "w", 0, "")
+	number         = flag.IntP("number", "n", 1, "")
+	special        = flag.IntP("special", "s", -1, "")
+	upper          = flag.IntP("uppercase", "u", -1, "")
 
 	vers = flag.BoolP("version", "v", false, "")
 
@@ -95,7 +97,11 @@ func main() {
 		return
 	}
 
-	if *special < 0 ||
+	if *includeSpecial && *special > -1 {
+		exit("Cannot use --include-special/-i and --special/-s at the same time")
+	}
+
+	if fix(*special) < 0 ||
 		fix(*upper) < 0 ||
 		*digits < 0 ||
 		*lower < 0 ||
@@ -113,8 +119,15 @@ func main() {
 		}
 	}
 
+	if *includeSpecial {
+		*special = int(next(*length - (*upper + *digits + *lower)))
+	}
+
 	if *upper < 0 {
-		*upper = int(next(*length - (*special + *digits + *lower)))
+		n := *length - (*special + *digits + *lower)
+		if n > 0 {
+			*upper = int(next(n))
+		}
 	}
 
 	fn := randAlg
