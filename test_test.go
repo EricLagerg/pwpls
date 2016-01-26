@@ -1,19 +1,15 @@
 package main
 
-import (
-	"runtime/debug"
-	"testing"
-)
+import "testing"
 
-func test(t *testing.T, ptr *int, testFn func(byte) bool, alg func() string) {
+func test(t *testing.T, ptr *int, testFn func(byte) bool, alg func(bool) string) {
 
 	*length = 50
 	*ptr = int(r.Next() % uint64(*length))
 
-	pw := alg()
+	pw := alg(false)
 	n := 0
 	for i := range pw {
-		debug.PrintStack()
 		if testFn(pw[i]) {
 			n++
 		}
@@ -26,24 +22,24 @@ func test(t *testing.T, ptr *int, testFn func(byte) bool, alg func() string) {
 
 func TestSpecs(t *testing.T) {
 	for _, a := range knownAlgorithms {
-		test(t, special, IsSpecial, a)
+		test(t, special, isSpecial, a)
 	}
 }
 
 func TestDigits(t *testing.T) {
 	for _, a := range knownAlgorithms {
-		test(t, digits, IsSpecial, a)
+		test(t, digits, isSpecial, a)
 	}
 }
 
 func TestUppers(t *testing.T) {
 	for _, a := range knownAlgorithms {
-		test(t, upper, IsSpecial, a)
+		test(t, upper, isSpecial, a)
 	}
 }
 
 func TestLower(t *testing.T) {
 	for _, a := range knownAlgorithms {
-		test(t, lower, IsSpecial, a)
+		test(t, lower, isSpecial, a)
 	}
 }

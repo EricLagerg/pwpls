@@ -89,6 +89,4 @@ var digitTable = table{
 
 ## License
 
-[Apache 2.0] [license].
-
-[license]:  https://github.com/EricLagerg/pwpls/blob/master/LICENSE
+The Unilicense: Public domain.

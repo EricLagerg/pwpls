@@ -5,11 +5,11 @@ import (
 	"encoding/binary"
 	"io"
 
-	mt "github.com/EricLagerg/go-prng/mersenne_twister_64"
-	xs "github.com/EricLagerg/go-prng/xorshift"
+	mt "github.com/EricLagergren/go-prng/mersenne_twister_64"
+	xs "github.com/EricLagergren/go-prng/xorshift"
 )
 
-func randAlg() string {
+func randAlg(b64 bool) string {
 	buf := make([]byte, *length)
 	n, err := io.ReadFull(rand.Reader, buf)
 	if err != nil {
@@ -20,7 +20,7 @@ func randAlg() string {
 		exit("io.ReadFull did not read %d bytes, instead read %d", *length, n)
 	}
 
-	return format(buf)
+	return format(buf, b64)
 }
 
 // round rounds up to the nearest multiple of a number to prevent
@@ -29,20 +29,20 @@ func round(have, want int) int {
 	return 1 + ((have + want - 1) & (^(want - 1)))
 }
 
-func xorshiftAlg() string {
+func xorshiftAlg(b64 bool) string {
 	r := &xs.Shift4096Star{}
 	r.Seed()
-	return doAlg(r.Next)
+	return doAlg(r.Next, b64)
 }
 
-func mersenneAlg() string {
-	return doAlg(mt.NewMersennePrime().Int64)
+func mersenneAlg(b64 bool) string {
+	return doAlg(mt.NewMersennePrime().Int64, b64)
 }
 
-func doAlg(fn func() uint64) string {
+func doAlg(fn func() uint64, b64 bool) string {
 	buf := make([]byte, round(*length, binary.MaxVarintLen64))
 	for i := 0; i < len(buf)-1; i += binary.MaxVarintLen64 {
 		binary.PutUvarint(buf[i:], fn())
 	}
-	return format(buf)
+	return format(buf, b64)
 }

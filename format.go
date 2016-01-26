@@ -4,35 +4,33 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 
-	prng "github.com/EricLagerg/go-prng/xorshift"
+	prng "github.com/EricLagergren/go-prng/xorshift"
 )
 
-func encode(src []byte) []byte {
-	buf := make([]byte, base64.StdEncoding.EncodedLen(len(src)))
-	base64.StdEncoding.Encode(buf, src)
-	return buf
+func encode(src []byte) string {
+	return base64.StdEncoding.EncodeToString(src)
 }
 
-func IsSpecial(b byte) bool {
+func isSpecial(b byte) bool {
 	return specialTable.in(b)
 }
 
-func IsDigit(b byte) bool {
+func isDigit(b byte) bool {
 	return '0' <= b && b <= '9'
 }
 
-func IsUpper(b byte) bool {
+func isUpper(b byte) bool {
 	return 'A' <= b && b <= 'Z'
 }
 
-func IsLower(b byte) bool {
+func isLower(b byte) bool {
 	return 'a' <= b && b <= 'z'
 }
 
 // format takes in a buffer of (hopefully) sufficiently random
 // data and returns a printable string conforming to the command-
 // line constraints.
-func format(buf []byte) string {
+func format(buf []byte, b64 bool) string {
 	if len(buf) < *length {
 		exit("format received a buffer with length %d, wanted %d", len(buf), *length)
 	}
@@ -54,28 +52,31 @@ func format(buf []byte) string {
 
 	dig, low := 0, 0
 	for i := range dst {
-		if IsDigit(dst[i]) {
+		if isDigit(dst[i]) {
 			dig++
 		}
 
-		if IsLower(dst[i]) {
+		if isLower(dst[i]) {
 			low++
 		}
 	}
 
 	if *lower > 0 {
-		lowerTable.add(dst, *lower, low, IsLower)
+		lowerTable.add(dst, *lower, low, isLower)
 	}
 	if *special > 0 {
-		specialTable.add(dst, *special, 0, IsSpecial)
+		specialTable.add(dst, *special, 0, isSpecial)
 	}
 	if *upper > 0 {
-		upperTable.add(dst, *upper, 0, IsUpper)
+		upperTable.add(dst, *upper, 0, isUpper)
 	}
 	if *digits > 0 && dig < *digits {
-		digitTable.add(dst, *digits, dig, IsDigit)
+		digitTable.add(dst, *digits, dig, isDigit)
 	}
 
+	if b64 {
+		return encode(dst)
+	}
 	return string(dst)
 }
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	flag "github.com/EricLagerg/pflag"
+	flag "github.com/EricLagergren/pflag"
 )
 
 const (
@@ -17,34 +17,34 @@ This is free software.
 There is NO WARRANTY, to the extent permitted by law.
 `
 
-	help = `Usage: wc [option]...
+	help = `Usage: pwpls [option]...
 
 Generate a password using specific criteria including required
 characters (2 uppercase, 1 special character, etc.), password
 creation algorithm, and more.
-
-  -c, --common		reject "common" passwords (default = true)
+  
+  -a, --algorithm	type of algorithm to use (default = OS' PRNG)
+            		  other types include:
+			  * xorshift:	      (xs)
+			  * mersenne_twister: (mt)
+  -b, --base64		base-64 encode password *after* generating it (default = false)
   -d, --digits		number of digits (default = random)
   -e, --exclude		exclude specific special characters (default = "")
-  -i, --include-special	include special characters (random)
+  -i, --include-special	include special characters (default = random)
   -l, --length		required password length (default = 8)
   -w, --lower		number of lowercase characters (default = random)
-  -n, --number		number of passwords to print
+  -n, --number		number of passwords to print (default = 1)
   -s, --special		number of special characters (default = 0)
-  -t, --type 		type of algorithm to use (default = OS' PRNG)
-            		  other types include (case independent):
-            		  * xorshift [xs] (4096)
-            		  * mersenne_twister [mt]
   -u, --uppercase	number of uppercase characters (default = random)
 
 Report pwpls bugs to ericscottlagergren@gmail.com
-pwpls home page: <https://github.com/EricLagerg/pwpls>
+pwpls home page: <https://github.com/EricLagergren/pwpls>
 `
 )
 
 var (
 	alg            = flag.StringP("alg", "a", "random", "")
-	common         = flag.BoolP("common", "c", true, "")
+	b64            = flag.BoolP("base64", "b", false, "")
 	digits         = flag.IntP("digits", "d", 0, "")
 	exclude        = flag.StringP("exclude", "e", "", "")
 	includeSpecial = flag.BoolP("include-special", "i", false, "")
@@ -59,9 +59,9 @@ var (
 	logger = log.New(os.Stderr, "pwpls: ", 0)
 )
 
-type AlgFn func() string
+type algFn func(bool) string
 
-var knownAlgorithms = map[string]AlgFn{
+var knownAlgorithms = map[string]algFn{
 	"random":           randAlg,
 	"xorshift":         xorshiftAlg,
 	"xs":               xorshiftAlg,
@@ -120,16 +120,15 @@ func main() {
 	}
 
 	fn := randAlg
-	ok := false
-
 	if *alg != "" {
+		var ok bool
 		if fn, ok = knownAlgorithms[strings.ToLower(*alg)]; !ok {
 			exit("unknown algorithm %q", *alg)
 		}
 	}
 
 	for i := *number; i > 0; i-- {
-		fmt.Println(fn())
+		fmt.Println(fn(*b64))
 	}
 }
 
